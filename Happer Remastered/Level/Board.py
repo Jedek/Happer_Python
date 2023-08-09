@@ -1,9 +1,11 @@
 import pygame
 from pygame.locals import *
-from Tile import Tile
-from Player import Player
-from Wall import Wall
+from Level.Tile import Tile
+from Objects.Pawns.Player import Player
+from Objects.Pawns.Wall import Wall
 import random
+from Settings import *
+from types import SimpleNamespace
 
 class Board(pygame.sprite.Sprite):
     def __init__(self, WIDTH, HEIGHT):
@@ -22,13 +24,12 @@ class Board(pygame.sprite.Sprite):
     def generateLevel(self):   
         
         self.tilemap = [
-            [0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0],
         ]
                  
         self.mapWidth = len(self.tilemap[0])
@@ -45,6 +46,16 @@ class Board(pygame.sprite.Sprite):
                 self.tiles.add(tile)
                 self.tilemap[y][x] = tile
                 
+                if x > 0:
+                    newX = x-1
+                    leftNeighbor = self.tilemap[y][newX]
+                    tile.setNeighbor(leftNeighbor, DIRECTION.LEFT)
+                
+                if y > 0:
+                    newY = y-1
+                    topNeighbor = self.tilemap[newY][x]
+                    tile.setNeighbor(topNeighbor, DIRECTION.UP)
+        
     def spawnPlayer(self):
         randomTile = self.tiles.sprites()[random.randint(0, len(self.tiles))-1]
         self.player.setPosition(randomTile)
@@ -53,12 +64,23 @@ class Board(pygame.sprite.Sprite):
     def addWalls(self):
         randomTile = self.tiles.sprites()[random.randint(0, len(self.tiles))]
         
-        print("Putting wall in tile " + randomTile.name)
         if randomTile.isPopulated() == False:
             wall = Wall()
             wall.setPosition(randomTile)
             randomTile.populate(wall)
             self.walls.add(wall)
+            print("Putting wall in tile " + wall.currentTile.name)
+
+    def convertWalls(self):
+        print("Converting walls")
+        for wall in self.walls:
+            if wall.movable == True:
+                wall.movable = False
+            else:
+                wall.movable = True
+                
+            wall.setColor()
+                
 
     def draw(self,screen):
         for tile in self.tiles:
@@ -70,17 +92,32 @@ class Board(pygame.sprite.Sprite):
         
         self.player.draw(screen)
     
-    def movePlayer(self, x, y):
-        
+    def movePlayer(self, key):
         currentTile = self.player.currentTile
-        newX = currentTile.x + x
-        newY = currentTile.y + y
+        newTile = None
+        movePlayer = False
         
-        try:
-            newTile = self.tilemap[newY][newX]
+        newTile = currentTile.neighbour[key]              
+        
+        if newTile != None:
             if newTile.isPopulated() == False:
-                self.player.setPosition(newTile)
-                newTile.populate(self.player)
-                currentTile.dePopulate()
-        except:
-            print("Exception occurred. Probably out of bounds")
+                movePlayer = True
+            else:
+                wall = newTile.contents
+                if isinstance(wall, Wall):
+                    print("There is a wall here!")
+                    if wall.movable:
+                        print("Wall can be moved!")
+                        wallCurrentTile = wall.currentTile
+                        bumpedTile = wallCurrentTile.neighbour[key]
+                        wall.setPosition(bumpedTile)
+                        wallCurrentTile.dePopulate()
+                        bumpedTile.populate(wall)
+                    else:
+                        print("Wall cant be moved...")
+        
+        if movePlayer:
+            self.player.setPosition(newTile)
+            newTile.populate(self)
+            currentTile.dePopulate()
+                    

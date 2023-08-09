@@ -1,0 +1,13 @@
+import types
+
+DIRECTION = types.SimpleNamespace()
+DIRECTION.UP    = 0
+DIRECTION.DOWN  = 1
+DIRECTION.LEFT  = 2
+DIRECTION.RIGHT = 3
+
+
+CONST_UP    = 0
+CONST_DOWN  = 1
+CONST_LEFT  = 2
+CONST_RIGHT = 3

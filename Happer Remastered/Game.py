@@ -1,11 +1,13 @@
 import pygame
 from pygame.locals import *
-from Board import Board
+from Level.Board import *
+from Settings import *
 
 class Game:
     HEIGHT = 600
     WIDTH = 800
     SIZE = WIDTH, HEIGHT
+    
 
     def __init__(self):
         pygame.init()
@@ -24,15 +26,17 @@ class Game:
                     self.running = False
                 if event.type == pygame.KEYDOWN:
                     if event.key == K_UP:
-                        self.board.movePlayer(0, -1)
+                        self.board.movePlayer(DIRECTION.UP)
                     if event.key == K_DOWN:
-                        self.board.movePlayer(0, 1)
+                        self.board.movePlayer(DIRECTION.DOWN)
                     if event.key == K_LEFT:
-                        self.board.movePlayer(-1, 0)
+                        self.board.movePlayer(DIRECTION.LEFT)
                     if event.key == K_RIGHT:
-                        self.board.movePlayer(1, 0)
+                        self.board.movePlayer(DIRECTION.RIGHT)
                     if event.key == K_SPACE:
                         self.board.addWalls()
+                    if event.key == K_t:
+                        self.board.convertWalls()
 
             self.board.draw(self.screen)
             pygame.display.update()
