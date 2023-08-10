@@ -1,7 +1,6 @@
 import pygame
 from pygame.locals import *
 from Objects.Pawns.Pawn import Pawn
-from pickle import TRUE
 
 class Wall(Pawn):
         def __init__(self):        
@@ -23,6 +22,7 @@ class Wall(Pawn):
                 self.surface.fill((0,0,0))
         
         def move(self, key):
+            print("moving wall towards direction ", key)
             destinationTile = self.currentTile.neighbour[key]
             if destinationTile != None:
                 self.setPosition(destinationTile)

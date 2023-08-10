@@ -19,4 +19,5 @@ class Pawn(pygame.sprite.Sprite):
         self.currentTile = tile
         self.rect.center = tile.rect.center
         
+        print("Object ", self, " moved to ", tile.name)
         

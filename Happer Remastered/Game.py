@@ -40,8 +40,9 @@ class Game:
                     if event.key == K_F5:
                         self.board.generateLevel()
                         self.board.spawnPlayer()
-
+                    
             self.board.draw(self.screen)
+            self.board.playerPulling()
             pygame.display.update()
         pygame.quit()
 

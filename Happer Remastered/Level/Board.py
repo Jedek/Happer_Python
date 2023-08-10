@@ -6,7 +6,7 @@ from Objects.Pawns.Wall import Wall
 import random
 from Settings import *
 from types import SimpleNamespace
-from pickle import TRUE
+from pickle import TRUE, NONE
 
 class Board(pygame.sprite.Sprite):
     def __init__(self, WIDTH, HEIGHT):
@@ -123,17 +123,56 @@ class Board(pygame.sprite.Sprite):
         movePlayer = True
         newTile = currentTile.neighbour[key]              
         
+        print("Key is ", key)
         for wall in self.walls:
             if wall.currentTile == newTile:
                 if wall.movable:
-                    movePlayer = self.moveWall(wall, key)
+                    movePlayer = self.pushWall(wall, key)
                 else:
                     movePlayer = False
                     
+        if self.player.pushing == False:
+            """Determine the opposite direction of the player. Determine if in the very next opposite tile there is a wall. Pull that wall."""
+            
+            match key:
+                case DIRECTION.UP:
+                    oppositeKey = DIRECTION.DOWN
+                case DIRECTION.DOWN:
+                    oppositeKey = DIRECTION.UP
+                case DIRECTION.LEFT:
+                    oppositeKey = DIRECTION.RIGHT
+                case DIRECTION.RIGHT:
+                    oppositeKey = DIRECTION.LEFT
+            
+            print("Opposite key is ", oppositeKey)
+            oppositeTile = self.player.currentTile.neighbour[oppositeKey]
+            
+            for wall in self.walls:
+                if wall.currentTile == oppositeTile:
+                    if wall.movable:
+                        print("Sending wall to direction ", oppositeKey)
+                        self.pullWall(wall, key)
+                    else:
+                        movePlayer = False 
+                        
         if movePlayer and newTile != None:
             self.player.setPosition(newTile)
     
-    def moveWall(self, wall, key, available = False):
+    def pullWall(self, wall, key):
+        playerNextMove = self.player.currentTile.neighbour[key]
+        validMove = True
+        
+        for otherWall in self.walls:
+            if otherWall.currentTile == playerNextMove and otherWall.movable == False:
+                validMove = False
+            
+        if validMove:
+            wall.move(key)
+            return True
+        else:
+            return False
+    
+    def pushWall(self, wall, key, available = False):
         if available == True:
             print("Moving wall on ", wall.currentTile.name, " to ", wall.currentTile.neighbour[key].name)
             wall.move(key)
@@ -144,14 +183,21 @@ class Board(pygame.sprite.Sprite):
                 for nextWall in self.walls:
                     if nextWall.currentTile == destination:
                         if nextWall.movable:
-                            moveWall = self.moveWall(nextWall, key)
+                            moveWall = self.pushWall(nextWall, key)
                             if moveWall:
                                 wall.move(key)
                                 return True
                             else: return False
                         else:
                             return False
-                return self.moveWall(wall, key, True)
+                return self.pushWall(wall, key, True)
         return False
-
+    
+    def playerPulling(self):
+        
+        keys = pygame.key.get_pressed()
+        if keys[K_c]:
+            self.player.pushing = False
+        else:
+            self.player.pushing = True
                     
