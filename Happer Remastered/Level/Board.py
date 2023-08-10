@@ -152,8 +152,6 @@ class Board(pygame.sprite.Sprite):
                     if wall.movable:
                         print("Sending wall to direction ", oppositeKey)
                         self.pullWall(wall, key)
-                    else:
-                        movePlayer = False 
                         
         if movePlayer and newTile != None:
             self.player.setPosition(newTile)
@@ -169,8 +167,6 @@ class Board(pygame.sprite.Sprite):
         if validMove:
             wall.move(key)
             return True
-        else:
-            return False
     
     def pushWall(self, wall, key, available = False):
         if available == True:
