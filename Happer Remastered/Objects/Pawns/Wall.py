@@ -1,6 +1,7 @@
 import pygame
 from pygame.locals import *
 from Objects.Pawns.Pawn import Pawn
+from pickle import TRUE
 
 class Wall(Pawn):
         def __init__(self):        
@@ -9,10 +10,11 @@ class Wall(Pawn):
             self.setColor()
         
         def setPosition(self, tile):
-            if(self.movable):
+            if self.movable == True or self.currentTile == None:
                 super().setPosition(tile)
-            else:
-                print("Cant move this")
+            else: 
+                print("Wall can't move")
+                
         
         def setColor(self):
             if self.movable:
@@ -20,4 +22,8 @@ class Wall(Pawn):
             else:
                 self.surface.fill((0,0,0))
         
+        def move(self, key):
+            destinationTile = self.currentTile.neighbour[key]
+            if destinationTile != None:
+                self.setPosition(destinationTile)
         pass

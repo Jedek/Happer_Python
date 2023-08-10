@@ -37,6 +37,9 @@ class Game:
                         self.board.addWalls()
                     if event.key == K_t:
                         self.board.convertWalls()
+                    if event.key == K_F5:
+                        self.board.generateLevel()
+                        self.board.spawnPlayer()
 
             self.board.draw(self.screen)
             pygame.display.update()

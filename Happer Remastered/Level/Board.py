@@ -6,6 +6,7 @@ from Objects.Pawns.Wall import Wall
 import random
 from Settings import *
 from types import SimpleNamespace
+from pickle import TRUE
 
 class Board(pygame.sprite.Sprite):
     def __init__(self, WIDTH, HEIGHT):
@@ -20,8 +21,13 @@ class Board(pygame.sprite.Sprite):
         self.walls = pygame.sprite.Group()
         
         self.player = Player()
+        
+        self.wallBacklog = []
          
     def generateLevel(self):   
+        
+        self.tiles.empty()
+        self.walls.empty()
         
         self.tilemap = [
             [0,0,0,0,0,0,0,0],
@@ -56,20 +62,39 @@ class Board(pygame.sprite.Sprite):
                     topNeighbor = self.tilemap[newY][x]
                     tile.setNeighbor(topNeighbor, DIRECTION.UP)
         
+        wall1 = Wall()
+        wall2 = Wall()
+        wall3 = Wall()
+        wall3.movable = False
+        
+        wall1.setPosition(self.tilemap[2][2])
+        wall2.setPosition(self.tilemap[3][2])
+        wall3.setPosition(self.tilemap[2][5])
+        
+        self.walls.add(wall1)
+        self.walls.add(wall2)
+        self.walls.add(wall3)
+        
     def spawnPlayer(self):
         randomTile = self.tiles.sprites()[random.randint(0, len(self.tiles))-1]
         self.player.setPosition(randomTile)
-        randomTile.populate(self.player)
 
     def addWalls(self):
-        randomTile = self.tiles.sprites()[random.randint(0, len(self.tiles))]
+        randomTile = self.tiles.sprites()[random.randint(0, len(self.tiles))-1]
+        placeWall = True
         
-        if randomTile.isPopulated() == False:
+        for wall in self.walls:
+            if wall.currentTile == randomTile:
+                placeWall = False
+        
+        if placeWall:
             wall = Wall()
             wall.setPosition(randomTile)
-            randomTile.populate(wall)
             self.walls.add(wall)
             print("Putting wall in tile " + wall.currentTile.name)
+            return False
+        else:
+            return self.addWalls()
 
     def convertWalls(self):
         print("Converting walls")
@@ -88,36 +113,45 @@ class Board(pygame.sprite.Sprite):
             screen.blit(self.font.render(tile.name, True, (0,0,0)), (tile.rect.x, tile.rect.y))
         
         for wall in self.walls:
+            wall.setColor()
             screen.blit(wall.surface, (wall.rect.x, wall.rect.y))
         
         self.player.draw(screen)
     
     def movePlayer(self, key):
         currentTile = self.player.currentTile
-        newTile = None
-        movePlayer = False
-        
+        movePlayer = True
         newTile = currentTile.neighbour[key]              
         
-        if newTile != None:
-            if newTile.isPopulated() == False:
-                movePlayer = True
-            else:
-                wall = newTile.contents
-                if isinstance(wall, Wall):
-                    print("There is a wall here!")
-                    if wall.movable:
-                        print("Wall can be moved!")
-                        wallCurrentTile = wall.currentTile
-                        bumpedTile = wallCurrentTile.neighbour[key]
-                        wall.setPosition(bumpedTile)
-                        wallCurrentTile.dePopulate()
-                        bumpedTile.populate(wall)
-                    else:
-                        print("Wall cant be moved...")
-        
-        if movePlayer:
+        for wall in self.walls:
+            if wall.currentTile == newTile:
+                if wall.movable:
+                    movePlayer = self.moveWall(wall, key)
+                else:
+                    movePlayer = False
+                    
+        if movePlayer and newTile != None:
             self.player.setPosition(newTile)
-            newTile.populate(self)
-            currentTile.dePopulate()
+    
+    def moveWall(self, wall, key, available = False):
+        if available == True:
+            print("Moving wall on ", wall.currentTile.name, " to ", wall.currentTile.neighbour[key].name)
+            wall.move(key)
+            return True
+        else:
+            destination = wall.currentTile.neighbour[key]
+            if destination != None:
+                for nextWall in self.walls:
+                    if nextWall.currentTile == destination:
+                        if nextWall.movable:
+                            moveWall = self.moveWall(nextWall, key)
+                            if moveWall:
+                                wall.move(key)
+                                return True
+                            else: return False
+                        else:
+                            return False
+                return self.moveWall(wall, key, True)
+        return False
+
                     

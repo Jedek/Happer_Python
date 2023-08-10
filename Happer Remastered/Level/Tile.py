@@ -12,31 +12,25 @@ class Tile(pygame.sprite.Sprite):
         self.surface.fill((255,0,0))
         self.rect = self.surface.get_rect()
         
-        self.populated = False
+        # self.contents = None
         
-        # reserving neighbours
-        self.tileTop = None
-        self.tileBottom = None
-        self.tileLeft = None
-        self.tileRight = None
-        
+        # reserving neighbours        
         self.neighbour = [None,None,None,None]
         
         self.name = "Undefined"
     
-    def populate(self, pawn):
+    """def populate(self, pawn):
         self.contents = pawn
-        self.populated = True
         
-        print(self.name, " is populated")
+    def dePopulate(self):
+        self.contents = None
     
     def isPopulated(self):
-        return self.populated
-    
-    def dePopulate(self):
-        self.object = None
-        self.populated = False
-    
+        if self.contents == None:
+            return False
+        else:
+            return True"""
+
     def setName(self, string):
         self.name = string
     
