@@ -1,4 +1,5 @@
 import pygame
+from pygame.locals import *
 from Settings import *
 
 class Pawn(pygame.sprite.Sprite):

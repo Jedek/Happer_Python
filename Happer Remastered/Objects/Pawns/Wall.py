@@ -1,5 +1,6 @@
 import pygame
 from pygame.locals import *
+from Settings import *
 from Objects.Pawns.Pawn import Pawn
 
 class Wall(Pawn):

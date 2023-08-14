@@ -1,50 +1,40 @@
-import pygame
+import pygame as pg
 from pygame.locals import *
-from Level.Board import *
-from Settings import *
 
-class Game:
-    HEIGHT = 600
-    WIDTH = 800
-    SIZE = WIDTH, HEIGHT
-    
+from utils import Dimension, Buttons
+from Level.board import Board
 
+class Application:
     def __init__(self):
-        pygame.init()
-        self.running = True
-        self.board = Board(Game.WIDTH, Game.HEIGHT)
-        self.board.generateLevel()        
-        self.board.spawnPlayer()
-        self.screen = pygame.display.set_mode(((self.board.mapWidth*100), (self.board.mapHeight*100)))
-        
-        pygame.display.set_caption("Game")
-
+        self.caption = "Happer Remastered"
+        self.window = pg.display.set_mode((Dimension.SCREEN_WIDTH.value, Dimension.SCREEN_HEIGHT.value))
+        self.board = Board(self.window)
+    
     def run(self):
-        while self.running:
-            for event in pygame.event.get():
-                if event.type == QUIT:
-                    self.running = False
-                if event.type == pygame.KEYDOWN:
+        
+        pg.display.set_caption(self.caption)
+        self.board.draw_board()
+        pg.display.flip()
+        running = True
+        
+        while running:
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    running = False
+                if event.type == pg.KEYDOWN:
+                    if event.key == K_ESCAPE:
+                        running = False
+                    if event.key == K_r:
+                        self.board.recreate_obstacles()
                     if event.key == K_UP:
-                        self.board.movePlayer(DIRECTION.UP)
+                        self.board.move_player(Buttons.UP.value)
                     if event.key == K_DOWN:
-                        self.board.movePlayer(DIRECTION.DOWN)
+                        self.board.move_player(Buttons.DOWN.value)
                     if event.key == K_LEFT:
-                        self.board.movePlayer(DIRECTION.LEFT)
+                        self.board.move_player(Buttons.LEFT.value)
                     if event.key == K_RIGHT:
-                        self.board.movePlayer(DIRECTION.RIGHT)
-                    if event.key == K_SPACE:
-                        self.board.addWalls()
-                    if event.key == K_t:
-                        self.board.convertWalls()
-                    if event.key == K_F5:
-                        self.board.generateLevel()
-                        self.board.spawnPlayer()
-                    
-            self.board.draw(self.screen)
-            self.board.playerPulling()
-            pygame.display.update()
-        pygame.quit()
+                        self.board.move_player(Buttons.RIGHT.value)
+        pg.quit()
 
-game = Game()
-game.run()      
+app = Application()
+app.run()
