@@ -9,7 +9,7 @@ class Pawn:
     """
     Class for representing pawns on the board
     """
-    def __init__(self, x: int, y: int, color: Tuple[int, int, int] = [0, 0, 0 ]):
+    def __init__(self, x: int, y: int, color: Tuple[int, int, int] = [0, 0, 0]):
         """
          Creates a new ``pawn`` instance.
         """

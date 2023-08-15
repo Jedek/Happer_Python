@@ -27,9 +27,11 @@ class Application:
         pg.time.set_timer(self.timer_event, self.time_interval)
         self.test_interval = 0
         self.board.enemy.draw_path_to_player()
+        
         while running:
-            self.board.enemy.draw_path_to_player()
+            #self.board.enemy.draw_path_to_player()
             self.board.enemy.find_path_to_player(self.board.player, self.board.board_matrix)
+            self.board.is_enemy_defeated()
             for event in pg.event.get():
                 if event.type == self.timer_event:
                     #self.board.enemy.move_to_player()

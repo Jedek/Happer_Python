@@ -46,15 +46,6 @@ class Enemy(Pawn):
                     self.move(self.path[0].x, self.path[0].y)
             else:
                 print("Found him!")
-    
-    def is_defeated(self):
-        number_of_squares = 0
-        
-        squares_to_check = list()
-        squares_to_check.append(Pawn(self.x+1, self.y))
-        squares_to_check.append(Pawn(self.x-1, self.y))
-        squares_to_check.append(Pawn(self.x, self.y+1))
-        squares_to_check.append(Pawn(self.x, self.y-1))
         
         
         

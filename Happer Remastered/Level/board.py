@@ -76,7 +76,7 @@ class Board:
     
     def draw_pawns(self):
         """
-        Obstacles created by self.create_obstacles are drawn on self.windows as a black rectangles.
+        Pawns created by self.create_pawns are drawn on self.windows as a black/yellow rectangles.
 
         :return: None
         """
@@ -85,7 +85,7 @@ class Board:
 
     def create_obstacles(self) -> List[Pawn]:
         """
-        Function creates from 1 to 10 obstacles with random coordinates.
+        Create walls and obstacles based on the maximum settings (set in initialisation)
         The self.matrix is modified to reflect the changes to on the board
 
         :return: list of obstacles coordinates
@@ -135,11 +135,35 @@ class Board:
         #return target_square not in self.obstacles
     
     def is_within_bounds(self, x: int, y: int):
+        """
+        Check to see if pawns are within the range of the grid. We don't want them to move off the screen right now.
+        
+        :param x: x coordinate integer
+        :param y: y coordinate integer
+        """
         if x in range(0, len(self.board_matrix[0])) and y in range(0, len(self.board_matrix)):
             return True
         else:
             return False
     
+    def is_enemy_defeated(self):
+        """
+        Check to see if the enemy pawn is surrounded by walls/obstacles. If they are, enemy is dead.
+        """
+        number_of_squares = 0
+        
+        squares_to_check = list()
+        squares_to_check.append(Pawn(self.enemy.x+1, self.enemy.y))
+        squares_to_check.append(Pawn(self.enemy.x-1, self.enemy.y))
+        squares_to_check.append(Pawn(self.enemy.x, self.enemy.y+1))
+        squares_to_check.append(Pawn(self.enemy.x, self.enemy.y-1))
+        
+        for square in squares_to_check:
+            if self.is_square_empty(square.x, square.y) == False:
+                number_of_squares += 1
+        
+        if number_of_squares > 3:
+            print("Enemy is defeated!")
     
     def recreate_obstacles(self):
         """
@@ -153,14 +177,23 @@ class Board:
         self.draw_board()
     
     def create_player(self):
+        """
+        Generate the player and put it on the board. If the square is already occupied, try again
         
-        #player_x_pos = random.randint(0, Dimension.board_width() - 1)
-        #player_y_pos = random.randint(0, Dimension.board_height() - 1)
-        player = Pawn(0, 0, Colors.ORANGE.value)
+        Note: Maybe create_player and create_enemy can be combined??
+        """
+        player_x_pos = random.randint(0, Dimension.board_width() - 1)
+        player_y_pos = random.randint(0, Dimension.board_height() - 1)
         
-        return player
+        if self.is_square_empty(player_x_pos, player_y_pos):
+            return Pawn(player_x_pos, player_y_pos, Colors.ORANGE.value)
+        else:
+            return self.create_player()
     
     def create_enemy(self):
+        """
+        Generate the enemy and place him on the board. If the square is already occupied, try again
+        """
         enemy_x_pos = random.randint(0, Dimension.board_width() - 1)
         enemy_y_pos = random.randint(0, Dimension.board_height() - 1)
         
@@ -170,25 +203,18 @@ class Board:
             return self.create_enemy()
     
     def move_player(self, direction):
-        player_x = self.player.x
-        player_y = self.player.y
+        """
+        Move the player in the direction given. Only empty squares can be moved into and if the player moves into a wall,
+        the walls are moved recursively
         
+        :param direction: the direction based on keyboard presses
+        """
         move_player = False
         
-        match direction:
-            case Buttons.UP.value:
-                "move up"
-                player_y-=1              
-            case Buttons.DOWN.value:
-                "move down"
-                player_y+=1
-            case Buttons.LEFT.value:
-                "move left"
-                player_x-=1
-            case Buttons.RIGHT.value:
-                "move right"
-                player_x+=1
+        player_direction = self.determine_direction(direction, self.player.x, self.player.y)
         
+        player_x = player_direction[0]
+        player_y = player_direction[1] 
         
         if self.is_square_empty(player_x, player_y):
             if self.is_within_bounds(player_x, player_y):
@@ -204,22 +230,16 @@ class Board:
             self.draw_board()
         
     def move_obstacle(self, obstacle, direction, available = False):
-        target_x = obstacle.x
-        target_y = obstacle.y
-    
-        match direction:
-            case Buttons.UP.value:
-                "move up"
-                target_y-=1              
-            case Buttons.DOWN.value:
-                "move down"
-                target_y+=1
-            case Buttons.LEFT.value:
-                "move left"
-                target_x-=1
-            case Buttons.RIGHT.value:
-                "move right"
-                target_x+=1   
+        """
+        Move the obstacles(walls), recursively checking if there's further walls to move
+        
+        :param obstacle: the obstacle that should be moved
+        :param direction: the direction based on keyboard presses
+        :param available: Remains falls until the recursive check has been done, after which the wall is moved
+        """
+        obstacle_direction = self.determine_direction(direction, obstacle.x, obstacle.y)
+        target_x = obstacle_direction[0]
+        target_y = obstacle_direction[1]
         
         if available == True:
             if self.is_square_empty(target_x, target_y) and self.is_within_bounds(target_x, target_y):
@@ -235,3 +255,20 @@ class Board:
                         self.move_obstacle(next_obstacle, direction)
             
             self.move_obstacle(obstacle, direction, True)
+    
+    def determine_direction(self, direction, x, y):
+        match direction:
+            case Buttons.UP.value:
+                "move up"
+                y-=1              
+            case Buttons.DOWN.value:
+                "move down"
+                y+=1
+            case Buttons.LEFT.value:
+                "move left"
+                x-=1
+            case Buttons.RIGHT.value:
+                "move right"
+                x+=1
+                
+        return (x, y)
