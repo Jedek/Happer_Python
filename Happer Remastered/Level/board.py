@@ -6,6 +6,7 @@ import pygame as pg
 
 from utils import Dimension, Colors, Buttons
 from Objects.pawn import Pawn
+from Objects.enemy import Enemy
 from Objects.obstacle import Obstacle
 
 
@@ -37,9 +38,10 @@ class Board:
         self.window = window
         self.board_matrix = np.full(Dimension.board_size(), 1)
         self.maximum_obstacles_on_board = 10
-        self.maximum_walls_on_board = 5
+        self.maximum_walls_on_board = 20
         self.pawns = list()
         self.player = self.create_player()
+        self.enemy = self.create_enemy()
         
         self.create_obstacles()
 
@@ -52,7 +54,7 @@ class Board:
         self.window.fill(Colors.WHITE.value)
         self.draw_lines()
         self.draw_pawns()
-        self.draw_player()
+        self.draw_actors()
 
     def draw_lines(self):
         """
@@ -68,8 +70,9 @@ class Board:
 
         pg.display.update()
     
-    def draw_player(self):
+    def draw_actors(self):
         self.player.draw(self.window)
+        self.enemy.draw(self.window)
     
     def draw_pawns(self):
         """
@@ -88,8 +91,8 @@ class Board:
         :return: list of obstacles coordinates
         :rtype: list
         """
-        obstacles_number = random.randint(1, self.maximum_obstacles_on_board)
-        walls_number = random.randint(1, self.maximum_walls_on_board)
+        obstacles_number = random.randint(7, self.maximum_obstacles_on_board)
+        walls_number = random.randint(10, self.maximum_walls_on_board)
         total_number = obstacles_number + walls_number
         
         # Generate obstacles first
@@ -125,6 +128,9 @@ class Board:
             if pawn.x == x and pawn.y == y:
                 empty = False
 
+        if hasattr(self, "enemy") and self.enemy.x == x and self.enemy.y == y:
+            empty = False
+
         return empty
         #return target_square not in self.obstacles
     
@@ -153,6 +159,15 @@ class Board:
         player = Pawn(0, 0, Colors.ORANGE.value)
         
         return player
+    
+    def create_enemy(self):
+        enemy_x_pos = random.randint(0, Dimension.board_width() - 1)
+        enemy_y_pos = random.randint(0, Dimension.board_height() - 1)
+        
+        if self.is_square_empty(enemy_x_pos, enemy_y_pos):
+            return Enemy(enemy_x_pos, enemy_y_pos, self.window)
+        else:
+            return self.create_enemy()
     
     def move_player(self, direction):
         player_x = self.player.x
@@ -208,6 +223,8 @@ class Board:
         
         if available == True:
             if self.is_square_empty(target_x, target_y) and self.is_within_bounds(target_x, target_y):
+                self.board_matrix[obstacle.y][obstacle.x] = 1
+                self.board_matrix[target_y][target_x] = 0
                 obstacle.move(target_x, target_y)
                 self.draw_board()
                 return True
@@ -218,86 +235,3 @@ class Board:
                         self.move_obstacle(next_obstacle, direction)
             
             self.move_obstacle(obstacle, direction, True)
-    """
-    def movePlayer(self, key):
-        currentTile = self.player.currentTile
-        movePlayer = True
-        newTile = currentTile.neighbour[key]              
-        
-        print("Key is ", key)
-        for wall in self.walls:
-            if wall.currentTile == newTile:
-                if wall.movable:
-                    movePlayer = self.pushWall(wall, key)
-                else:
-                    movePlayer = False
-                    
-        if self.player.pushing == False:
-            Determine the opposite direction of the player. 
-            Determine if in the very next opposite tile there is a wall. 
-            Pull that wall.
-            
-            match key:
-                case DIRECTION.UP:
-                    oppositeKey = DIRECTION.DOWN
-                case DIRECTION.DOWN:
-                    oppositeKey = DIRECTION.UP
-                case DIRECTION.LEFT:
-                    oppositeKey = DIRECTION.RIGHT
-                case DIRECTION.RIGHT:
-                    oppositeKey = DIRECTION.LEFT
-            
-            print("Opposite key is ", oppositeKey)
-            oppositeTile = self.player.currentTile.neighbour[oppositeKey]
-            
-            for wall in self.walls:
-                if wall.currentTile == oppositeTile:
-                    if wall.movable:
-                        print("Sending wall to direction ", oppositeKey)
-                        #self.pullWall(wall, key)
-                        
-        if movePlayer and newTile != None:
-            self.player.setPosition(newTile)
-    
-    def pullWall(self, wall, key):
-        playerNextMove = self.player.currentTile.neighbour[key]
-        validMove = True
-        
-        for otherWall in self.walls:
-            if otherWall.currentTile == playerNextMove and otherWall.movable == False:
-                validMove = False
-                
-        if validMove:
-            wall.move(key)
-            return True
-    
-    def pushWall(self, wall, key, available = False):
-        if available == True:
-            print("Moving wall on ", wall.currentTile.name, " to ", wall.currentTile.neighbour[key].name)
-            wall.move(key)
-            return True
-        else:
-            destination = wall.currentTile.neighbour[key]
-            if destination != None:
-                for nextWall in self.walls:
-                    if nextWall.currentTile == destination:
-                        if nextWall.movable:
-                            moveWall = self.pushWall(nextWall, key)
-                            if moveWall:
-                                wall.move(key)
-                                return True
-                            else: return False
-                        else:
-                            return False
-                return self.pushWall(wall, key, True)
-        return False
-    
-    def playerPulling(self):
-        
-        keys = pygame.key.get_pressed()
-        if keys[K_c]:
-            self.player.pushing = False
-        else:
-            self.player.pushing = True
-                    
-"""
