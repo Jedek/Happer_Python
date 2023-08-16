@@ -19,14 +19,14 @@ class Application:
     def run(self):
         
         pg.display.set_caption(self.caption)
-        self.board.draw_board()
         pg.display.flip()
+        self.board.draw_board()
+       
         running = True
         
         print(self.board.board_matrix)
         pg.time.set_timer(self.timer_event, self.time_interval)
         self.test_interval = 0
-        self.board.enemy.draw_path_to_player()
         
         while running:
             #self.board.enemy.draw_path_to_player()
@@ -34,7 +34,7 @@ class Application:
             self.board.is_enemy_defeated()
             for event in pg.event.get():
                 if event.type == self.timer_event:
-                    #self.board.enemy.move_to_player()
+                    self.board.enemy.move_to_player()
                     self.board.draw_board()
                 if event.type == pg.QUIT:
                     running = False

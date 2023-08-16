@@ -5,12 +5,12 @@ from typing import Tuple
 
 class Dimension(Enum):
     
-    SQUARE_WIDTH = 80
-    SQUARE_HEIGHT = 80
+    SQUARE_WIDTH = 100
+    SQUARE_HEIGHT = 100
     
     SCREEN_WIDTH = 800
     SCREEN_HEIGHT = 800
-    
+        
     @classmethod
     def board_height(cls) -> int:
         return cls.SCREEN_HEIGHT.value // cls.SQUARE_HEIGHT.value
@@ -46,3 +46,8 @@ class Buttons(Enum):
     DOWN    = 6
     LEFT    = 7
     RIGHT   = 8
+
+@unique
+class Levels(Enum):
+    LEVEL_1 = 'Level/level_1.csv'
+    LEVEL_2 = 'Level/level_2.csv'

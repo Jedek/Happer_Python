@@ -5,7 +5,6 @@ import numpy as np
 
 from Objects.pawn import Pawn
 from utils import Colors
-from pathfinder import PathFinder
 
 from pathfinding.core.diagonal_movement import DiagonalMovement
 from pathfinding.core.grid import Grid

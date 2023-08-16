@@ -3,11 +3,13 @@ from typing import List
 
 import numpy as np
 import pygame as pg
+import csv
 
-from utils import Dimension, Colors, Buttons
+from utils import Dimension, Colors, Buttons, Levels
 from Objects.pawn import Pawn
 from Objects.enemy import Enemy
 from Objects.obstacle import Obstacle
+from ast import Num
 
 
 class Board:
@@ -37,13 +39,14 @@ class Board:
         """
         self.window = window
         self.board_matrix = np.full(Dimension.board_size(), 1)
-        self.maximum_obstacles_on_board = 10
-        self.maximum_walls_on_board = 20
-        self.pawns = list()
-        self.player = self.create_player()
-        self.enemy = self.create_enemy()
+        self.maximum_obstacles_on_board = 100
+        self.maximum_walls_on_board = 100
         
-        self.create_obstacles()
+        self.level = Levels.LEVEL_1.value
+        
+        self.pawns = list()
+        self.generate_level()
+
 
     def draw_board(self):
         """
@@ -55,6 +58,7 @@ class Board:
         self.draw_lines()
         self.draw_pawns()
         self.draw_actors()
+        pg.display.update()
 
     def draw_lines(self):
         """
@@ -67,8 +71,6 @@ class Board:
 
         for y_cord in range(0, Dimension.SCREEN_HEIGHT.value, Dimension.SQUARE_HEIGHT.value):
             pg.draw.line(self.window, Colors.BLACK.value, (0, y_cord), (Dimension.SCREEN_WIDTH.value, y_cord))
-
-        pg.display.update()
     
     def draw_actors(self):
         self.player.draw(self.window)
@@ -83,7 +85,7 @@ class Board:
         for pawn in self.pawns:
             pawn.draw(self.window)
 
-    def create_obstacles(self) -> List[Pawn]:
+    def generate_level(self) -> List[Pawn]:
         """
         Create walls and obstacles based on the maximum settings (set in initialisation)
         The self.matrix is modified to reflect the changes to on the board
@@ -91,7 +93,40 @@ class Board:
         :return: list of obstacles coordinates
         :rtype: list
         """
-        obstacles_number = random.randint(7, self.maximum_obstacles_on_board)
+        
+        with open(self.level, newline='') as csvfile:
+            tile_map = csv.reader(csvfile, delimiter=',', quotechar='|')
+            
+            x_pos = 0
+            y_pos = 0
+            
+            for y in tile_map:
+                x_pos = 0
+                for x in y:
+                    obstacle = None
+                    if x == "1":
+                        obstacle = Obstacle(x_pos, y_pos)
+                    
+                    if x == "W":
+                        obstacle = Obstacle(x_pos, y_pos)
+                        obstacle.toggle_movable()
+                    
+                    if x == "P":
+                        self.player = self.spawn_player(x_pos, y_pos)
+                    
+                    if x == "E":
+                        self.enemy = self.spawn_enemy(x_pos, y_pos)
+                                        
+                    if obstacle != None:
+                        if obstacle not in self.pawns:
+                            self.board_matrix[y_pos, x_pos] = 0
+                            self.pawns.append(obstacle)
+                            
+                    x_pos+=1
+                y_pos+=1
+                
+        
+        """obstacles_number = random.randint(7, self.maximum_obstacles_on_board)
         walls_number = random.randint(10, self.maximum_walls_on_board)
         total_number = obstacles_number + walls_number
         
@@ -113,7 +148,7 @@ class Board:
             obstacle.toggle_movable()
             if obstacle not in self.pawns:
                 self.board_matrix[obstacle_y_pos][obstacle_x_pos] = 0
-                self.pawns.append(obstacle)
+                self.pawns.append(obstacle)"""
             
 
     def is_square_empty(self, x, y) -> bool:
@@ -176,29 +211,29 @@ class Board:
         self.create_obstacles()
         self.draw_board()
     
-    def create_player(self):
+    def spawn_player(self, x: int, y: int):
         """
         Generate the player and put it on the board. If the square is already occupied, try again
         
         Note: Maybe create_player and create_enemy can be combined??
         """
-        player_x_pos = random.randint(0, Dimension.board_width() - 1)
-        player_y_pos = random.randint(0, Dimension.board_height() - 1)
+        #player_x_pos = random.randint(0, Dimension.board_width() - 1)
+        #player_y_pos = random.randint(0, Dimension.board_height() - 1)
         
-        if self.is_square_empty(player_x_pos, player_y_pos):
-            return Pawn(player_x_pos, player_y_pos, Colors.ORANGE.value)
+        if self.is_square_empty(x, y):
+            return Pawn(x, y, Colors.ORANGE.value)
         else:
             return self.create_player()
     
-    def create_enemy(self):
+    def spawn_enemy(self, x: int, y: int):
         """
         Generate the enemy and place him on the board. If the square is already occupied, try again
         """
-        enemy_x_pos = random.randint(0, Dimension.board_width() - 1)
-        enemy_y_pos = random.randint(0, Dimension.board_height() - 1)
+        #enemy_x_pos = random.randint(0, Dimension.board_width() - 1)
+        #enemy_y_pos = random.randint(0, Dimension.board_height() - 1)
         
-        if self.is_square_empty(enemy_x_pos, enemy_y_pos):
-            return Enemy(enemy_x_pos, enemy_y_pos, self.window)
+        if self.is_square_empty(x, y):
+            return Enemy(x, y, self.window)
         else:
             return self.create_enemy()
     

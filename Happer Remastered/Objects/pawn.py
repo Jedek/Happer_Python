@@ -48,7 +48,7 @@ class Pawn:
         rect = (shifted_window_coordinates, (Dimension.SQUARE_WIDTH.value - 1, Dimension.SQUARE_HEIGHT.value - 1))
         pg.draw.rect(window, self.color, rect)
 
-        pg.display.update(rect)
+        #pg.display.update(rect)
     
     def move(self, x: int, y: int):
         self.x = x
