@@ -197,7 +197,7 @@ class Board:
             if self.is_square_empty(square.x, square.y) == False:
                 number_of_squares += 1
         
-        if number_of_squares > 3:
+        if number_of_squares > 2:
             print("Enemy is defeated!")
     
     def recreate_obstacles(self):
@@ -245,11 +245,11 @@ class Board:
         :param direction: the direction based on keyboard presses
         """
         move_player = False
+        is_pulling = self.is_player_pulling()
         
-        player_direction = self.determine_direction(direction, self.player.x, self.player.y)
-        
-        player_x = player_direction[0]
-        player_y = player_direction[1] 
+        player_direction_coordinates = self.determine_direction_coordinates(direction, self.player)
+        player_x = player_direction_coordinates[0]
+        player_y = player_direction_coordinates[1] 
         
         if self.is_square_empty(player_x, player_y):
             if self.is_within_bounds(player_x, player_y):
@@ -261,8 +261,27 @@ class Board:
                         self.move_obstacle(pawn, direction)
                                
         if move_player: 
-            self.player.move(player_x, player_y)
+            if is_pulling:
+                opposite_direction = self.get_opposite_direction(direction)
+                opposite_direction_coordinates = self.determine_direction_coordinates(opposite_direction, self.player)
+                
+                for pawn in self.pawns:
+                    if pawn.x == opposite_direction_coordinates[0] and pawn.y == opposite_direction_coordinates[1]:
+                        if pawn.is_movable:
+                            self.player.move(player_x, player_y)
+                            self.move_obstacle(pawn, direction)
+            else:
+                self.player.move(player_x, player_y)
+                
             self.draw_board()
+    
+    def is_player_pulling(self):
+        pressed_key = pg.key.get_pressed()
+        
+        if pressed_key[pg.K_LCTRL]:
+            return True
+        else:
+            return False
         
     def move_obstacle(self, obstacle, direction, available = False):
         """
@@ -272,7 +291,7 @@ class Board:
         :param direction: the direction based on keyboard presses
         :param available: Remains falls until the recursive check has been done, after which the wall is moved
         """
-        obstacle_direction = self.determine_direction(direction, obstacle.x, obstacle.y)
+        obstacle_direction = self.determine_direction_coordinates(direction, obstacle)
         target_x = obstacle_direction[0]
         target_y = obstacle_direction[1]
         
@@ -291,7 +310,10 @@ class Board:
             
             self.move_obstacle(obstacle, direction, True)
     
-    def determine_direction(self, direction, x, y):
+    def determine_direction_coordinates(self, direction, pawn: Pawn):
+        x = pawn.x
+        y = pawn.y
+        
         match direction:
             case Buttons.UP.value:
                 "move up"
@@ -307,3 +329,20 @@ class Board:
                 x+=1
                 
         return (x, y)
+    
+    def get_opposite_direction(self, direction):
+        match direction:
+            case Buttons.UP.value:
+                "move up"
+                direction = Buttons.DOWN.value         
+            case Buttons.DOWN.value:
+                "move down"
+                direction = Buttons.UP.value
+            case Buttons.LEFT.value:
+                "move left"
+                direction = Buttons.RIGHT.value
+            case Buttons.RIGHT.value:
+                "move right"
+                direction = Buttons.LEFT.value
+                
+        return direction
